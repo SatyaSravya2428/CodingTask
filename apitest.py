@@ -6,20 +6,23 @@ API_URL = " https://y2ctkccl06.execute-api.us-east-1.amazonaws.com/v1"
 API_KEY = "ZLN285SqpNRMDYbrs99z5oMVtAvfbtg43KXbPIv5"
 
 headers = {
-    "x-api-key": API_KEY
+    "x-api-key": API_KEY,
+
 }
 
 def test_upload_image():
     url = f"{API_URL}/upload"
-    image_path = 'path/to/your/image.jpg'
+    image_path = '../Pictures/sample.png'
     with open(image_path, "rb") as image_file:
         encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
+    headers['Content-Type'] = "application/png"
     files = {
-        'image': encoded_image,
-        'metadata': (None, json.dumps({'title': 'Test Image', 'description': 'Test Description'}), 'application/json')
-    }
+        'content': encoded_image
+        }
     response = requests.post(url, files=files, headers=headers)
     assert response.status_code == 200
+    assert "message" in response
+    assert "imageid" in response
     data = response.json()
     return data['imageId']
 
@@ -28,15 +31,14 @@ def test_list_images():
     response = requests.get(url, headers=headers)
     assert response.status_code == 200
     data = response.json()
-    assert isinstance(data, list)
+    assert "body" in data
 
 def test_view_image(image_id):
     url = f"{API_URL}/viewimage/{image_id}"
     response = requests.get(url, headers=headers)
     assert response.status_code == 200
     data = response.json()
-    assert 'image' in data
-    assert 'metadata' in data
+    assert 'body' in data
 
 def test_delete_image(image_id):
     url = f"{API_URL}/deleteimage/{image_id}"
