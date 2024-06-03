@@ -8,31 +8,38 @@ table = dynamodb.Table(os.environ['table_name'])
 
 def lambda_handler(event, context):
     
-    print("*****", event)
     query_params = event.get('queryStringParameters', {})
-    filter_key1 = query_params.get('filterKey1')
-    filter_value1 = query_params.get('filterValue1')
-    filter_key2 = query_params.get('filterKey2')
-    filter_value2 = query_params.get('filterValue2')
-
-    
-    filter_expression = None
-    if filter_key1 and filter_value1:
-        filter_expression = Attr(filter_key1).eq(filter_value1)
-    if filter_key2 and filter_value2:
-        if filter_expression:
-            filter_expression &= Attr(filter_key2).eq(filter_value2)
-        else:
-            filter_expression = Attr(filter_key2).eq(filter_value2)
-    
-    if filter_expression:
-        response = table.scan(FilterExpression=filter_expression)
-    else:
+    if not query_params :
         response = table.scan()
+    else:
+        imageid = query_params.get('imageid', None)
+        timestamp = query_params.get('timestamp', None)
+        
+        print(imageid, timestamp)
+        filter_expression = None
+        if imageid:
+            filter_expression = Attr('imageid').eq(imageid)
+            if timestamp:
+                filter_expression &= Attr('timestamp').eq(timestamp)
+        if timestamp:
+            filter_expression = Attr('timestamp').eq(timestamp)
+    
+    
+        if filter_expression:
+            response = table.scan(FilterExpression=filter_expression)
+            if response is None:
+                    return {
+                   "isBase64Encoded": False,
+                    "headers": { "Content-Type": "*/*"},
+                    "statusCode": 500,
+                    'body': 'No items found with the given imageid'
+                }
     
     items = response['Items']
     
     return {
-        'statusCode': 200,
-        'body': json.dumps(items)
-    }
+        "isBase64Encoded": False,
+        "headers": { "Content-Type": "*/*"},
+        "statusCode": 200,
+        "body": json.dumps(items)
+        }
