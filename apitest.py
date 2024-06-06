@@ -3,7 +3,7 @@ import requests
 import base64
 
 API_URL = " https://y2ctkccl06.execute-api.us-east-1.amazonaws.com/v1"
-API_KEY = "ZLN285SqpNRMDYbrs99z5oMVtAvfbtg43KXbPIv5"
+API_KEY = ""
 
 headers = {
     "x-api-key": API_KEY,
